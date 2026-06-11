@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import SuperAdminGuard from "@/components/SuperAdminGuard";
 import SuperAdminSidebar from "@/components/SuperAdminSidebar";
 import { superAdminAPI, OrgRow } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 
 const TIER_COLORS: Record<string, string> = {
   free: "bg-gray-100 text-gray-600",
@@ -14,28 +15,27 @@ const TIER_COLORS: Record<string, string> = {
 };
 
 export default function OrganizationsPage() {
+  const { user, loading: authLoading } = useAuth();
   const [orgs, setOrgs] = useState<OrgRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [tierFilter, setTierFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
-  const fetchOrgs = (s = search, t = tierFilter, st = statusFilter) => {
+  const fetchOrgs = useCallback((s = search, t = tierFilter, st = statusFilter) => {
     setLoading(true);
     superAdminAPI
       .organizations({ search: s || undefined, tier: t || undefined, status: st || undefined })
       .then((r) => setOrgs(r.data))
       .finally(() => setLoading(false));
-  };
+  }, [search, tierFilter, statusFilter]);
 
   useEffect(() => {
-    fetchOrgs();
-  }, []);
+    if (authLoading || user?.role !== "super_admin") return;
 
-  useEffect(() => {
     const timer = setTimeout(() => fetchOrgs(), 400);
     return () => clearTimeout(timer);
-  }, [search, tierFilter, statusFilter]);
+  }, [authLoading, user?.role, fetchOrgs]);
 
   return (
     <SuperAdminGuard>

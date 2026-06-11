@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import SuperAdminGuard from "@/components/SuperAdminGuard";
 import SuperAdminSidebar from "@/components/SuperAdminSidebar";
 import { superAdminAPI } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 
 interface OrgDetail {
   organization: {
@@ -45,21 +46,26 @@ const TIER_COLORS: Record<string, string> = {
 
 export default function OrgDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [data, setData] = useState<OrgDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     superAdminAPI.orgDetail(id).then((r) => {
       setData(r.data);
       setLoading(false);
     });
-  };
+  }, [id]);
 
-  useEffect(() => { load(); }, [id]);
+  useEffect(() => {
+    if (authLoading || user?.role !== "super_admin") return;
+
+    const timer = setTimeout(() => load(), 0);
+    return () => clearTimeout(timer);
+  }, [authLoading, user?.role, load]);
 
   const update = async (patch: Record<string, string>) => {
     setSaving(true);

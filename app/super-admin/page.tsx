@@ -5,6 +5,7 @@ import Link from "next/link";
 import SuperAdminGuard from "@/components/SuperAdminGuard";
 import SuperAdminSidebar from "@/components/SuperAdminSidebar";
 import { superAdminAPI, SuperAdminStats } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 
 const TIER_COLORS: Record<string, string> = {
   free: "bg-gray-100 text-gray-600",
@@ -34,15 +35,18 @@ function StatCard({
 }
 
 export default function SuperAdminDashboard() {
+  const { user, loading: authLoading } = useAuth();
   const [stats, setStats] = useState<SuperAdminStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading || user?.role !== "super_admin") return;
+
     superAdminAPI.stats().then((r) => {
       setStats(r.data);
       setLoading(false);
     });
-  }, []);
+  }, [authLoading, user]);
 
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);

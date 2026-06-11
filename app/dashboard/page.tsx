@@ -5,6 +5,8 @@ import AuthGuard from "@/components/AuthGuard";
 import Sidebar from "@/components/Sidebar";
 import { dashboardAPI, ordersAPI, Order } from "@/lib/api";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 interface Stats {
   today_sales: number;
@@ -23,18 +25,27 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
 }
 
 export default function DashboardPage() {
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
   const [stats, setStats] = useState<Stats | null>(null);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading || !user) return;
+
+    if (user.role === "super_admin") {
+      router.replace("/super-admin");
+      return;
+    }
+
     Promise.all([dashboardAPI.stats(), ordersAPI.list()])
       .then(([statsRes, ordersRes]) => {
         setStats(statsRes.data);
         setRecentOrders(ordersRes.data.slice(0, 5));
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [authLoading, user, router]);
 
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-AE", { style: "currency", currency: "AED" }).format(n);
