@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import AuthGuard from "@/components/AuthGuard";
-import Sidebar from "@/components/Sidebar";
+import { AppShell, EmptyState, PageHeader, PlusIcon } from "@/components/AppShell";
 import { itemsAPI, Item } from "@/lib/api";
 
 interface ItemFormData {
@@ -34,12 +33,25 @@ export default function ItemsPage() {
   };
 
   useEffect(() => {
-    fetchItems();
+    let cancelled = false;
+
+    itemsAPI
+      .list()
+      .then((res) => {
+        if (!cancelled) setItems(res.data);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
-    const t = setTimeout(() => fetchItems(search || undefined), 400);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => fetchItems(search || undefined), 400);
+    return () => clearTimeout(timer);
   }, [search]);
 
   const openCreate = () => {
@@ -76,11 +88,7 @@ export default function ItemsPage() {
       fetchItems(search || undefined);
     } catch (err: unknown) {
       const data = (err as { response?: { data?: Record<string, string[]> } })?.response?.data;
-      if (data) {
-        setError(Object.values(data).flat()[0] || "Failed to save item.");
-      } else {
-        setError("Failed to save item.");
-      }
+      setError(data ? Object.values(data).flat()[0] || "Failed to save item." : "Failed to save item.");
     } finally {
       setSaving(false);
     }
@@ -93,98 +101,73 @@ export default function ItemsPage() {
   };
 
   return (
-    <AuthGuard>
-      <div className="flex h-screen overflow-hidden">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto px-6 py-6">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h1 className="text-xl font-bold text-gray-900">Items</h1>
-              <button
-                onClick={openCreate}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
-              >
-                + Add Item
-              </button>
-            </div>
+    <AppShell>
+      <PageHeader
+        title="Items"
+        subtitle="Manage the catalog your sales team uses on the road."
+        actions={
+          <button onClick={openCreate} className="app-btn-primary">
+            <PlusIcon /> Add Item
+          </button>
+        }
+      />
 
-            <input
-              type="search"
-              placeholder="Search items…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full mb-4 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+      <input
+        type="search"
+        placeholder="Search items..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="app-input mb-4"
+      />
 
-            {loading ? (
-              <div className="space-y-2">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="h-14 bg-gray-100 rounded-xl animate-pulse" />
+      {loading ? (
+        <div className="space-y-3">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-14 animate-pulse rounded-2xl bg-purple-100/70" />
+          ))}
+        </div>
+      ) : items.length === 0 ? (
+        <EmptyState title="No items yet" body="Add your first product to start building orders." />
+      ) : (
+        <div className="app-table-wrap">
+          <table className="app-table">
+            <thead>
+              <tr>
+                {["Name", "SKU", "Price", "GST %", "Unit", ""].map((heading) => (
+                  <th key={heading} className="app-th">
+                    {heading}
+                  </th>
                 ))}
-              </div>
-            ) : items.length === 0 ? (
-              <div className="bg-white rounded-xl border border-gray-200 p-10 text-center text-gray-400">
-                <p className="text-4xl mb-2">◈</p>
-                <p className="text-sm">No items yet. Add your first product.</p>
-              </div>
-            ) : (
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      {["Name", "SKU", "Price", "GST %", "Unit", ""].map((h) => (
-                        <th
-                          key={h}
-                          className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide"
-                        >
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {items.map((item) => (
-                      <tr key={item.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium">{item.name}</td>
-                        <td className="px-4 py-3 text-gray-400">{item.sku || "—"}</td>
-                        <td className="px-4 py-3">AED {item.price}</td>
-                        <td className="px-4 py-3">{item.gst_rate}%</td>
-                        <td className="px-4 py-3 text-gray-400">{item.unit || "—"}</td>
-                        <td className="px-4 py-3 text-right space-x-2">
-                          <button
-                            onClick={() => openEdit(item)}
-                            className="text-blue-600 hover:underline text-xs"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(item.id)}
-                            className="text-red-500 hover:underline text-xs"
-                          >
-                            Remove
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </main>
-      </div>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#eee7f8]">
+              {items.map((item) => (
+                <tr key={item.id} className="hover:bg-purple-50/50">
+                  <td className="app-td font-bold">{item.name}</td>
+                  <td className="app-td text-[#6d6478]">{item.sku || "-"}</td>
+                  <td className="app-td font-semibold">AED {item.price}</td>
+                  <td className="app-td">{item.gst_rate}%</td>
+                  <td className="app-td text-[#6d6478]">{item.unit || "-"}</td>
+                  <td className="app-td text-right">
+                    <button onClick={() => openEdit(item)} className="mr-3 text-xs font-bold text-purple-700">
+                      Edit
+                    </button>
+                    <button onClick={() => handleDelete(item.id)} className="text-xs font-bold text-red-600">
+                      Remove
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {showForm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-            <h2 className="text-base font-bold text-gray-900 mb-4">
-              {editItem ? "Edit Item" : "Add New Item"}
-            </h2>
-            {error && (
-              <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
-                {error}
-              </div>
-            )}
+        <div className="app-modal-backdrop">
+          <div className="app-modal">
+            <h2 className="app-section-title mb-4">{editItem ? "Edit Item" : "Add New Item"}</h2>
+            {error && <div className="app-alert-error mb-4">{error}</div>}
             <form onSubmit={handleSave} className="space-y-3">
               {[
                 { label: "Name *", field: "name", type: "text", placeholder: "Product name" },
@@ -194,35 +177,25 @@ export default function ItemsPage() {
                 { label: "Unit", field: "unit", type: "text", placeholder: "pcs / kg / box" },
               ].map(({ label, field, type, placeholder }) => (
                 <div key={field}>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">{label}</label>
+                  <label className="app-label">{label}</label>
                   <input
                     type={type}
                     step={type === "number" ? "0.01" : undefined}
                     min={type === "number" ? "0" : undefined}
                     value={form[field as keyof ItemFormData]}
-                    onChange={(e) =>
-                      setForm((prev) => ({ ...prev, [field]: e.target.value }))
-                    }
+                    onChange={(e) => setForm((prev) => ({ ...prev, [field]: e.target.value }))}
                     required={label.includes("*")}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="app-input"
                     placeholder={placeholder}
                   />
                 </div>
               ))}
 
               <div className="flex gap-2 pt-2">
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg text-sm transition disabled:opacity-60"
-                >
-                  {saving ? "Saving…" : "Save"}
+                <button type="submit" disabled={saving} className="app-btn-primary flex-1">
+                  {saving ? "Saving..." : "Save"}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="flex-1 border border-gray-300 text-gray-700 font-semibold py-2 rounded-lg text-sm hover:bg-gray-50 transition"
-                >
+                <button type="button" onClick={() => setShowForm(false)} className="app-btn-secondary flex-1">
                   Cancel
                 </button>
               </div>
@@ -230,6 +203,6 @@ export default function ItemsPage() {
           </div>
         </div>
       )}
-    </AuthGuard>
+    </AppShell>
   );
 }

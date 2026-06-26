@@ -2,16 +2,71 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { VanLogo } from "@/components/AuthShell";
 import { useAuth } from "@/context/AuthContext";
 
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: "▦" },
-  { href: "/items", label: "Items", icon: "◈" },
-  { href: "/orders", label: "Orders", icon: "◎" },
-  { href: "/orders/new", label: "New Order", icon: "＋" },
-  { href: "/team", label: "Team", icon: "⊙", adminOnly: true },
-  { href: "/billing", label: "Billing", icon: "◷", adminOnly: true },
+type IconName = "dashboard" | "items" | "orders" | "plus" | "team" | "billing";
+
+const navItems: { href: string; label: string; icon: IconName; adminOnly?: boolean }[] = [
+  { href: "/dashboard", label: "Dashboard", icon: "dashboard" },
+  { href: "/items", label: "Items", icon: "items" },
+  { href: "/orders", label: "Orders", icon: "orders" },
+  { href: "/orders/new", label: "New Order", icon: "plus" },
+  { href: "/team", label: "Team", icon: "team", adminOnly: true },
+  { href: "/billing", label: "Billing", icon: "billing", adminOnly: true },
 ];
+
+function NavIcon({ name }: { name: IconName }) {
+  if (name === "items") {
+    return (
+      <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden="true">
+        <path d="M4 5h12M4 10h12M4 15h8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (name === "orders") {
+    return (
+      <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden="true">
+        <path d="M6 3h8l2 3v11H4V6l2-3Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+        <path d="M7 9h6M7 13h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (name === "plus") {
+    return (
+      <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden="true">
+        <path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (name === "team") {
+    return (
+      <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden="true">
+        <path d="M7 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM13.5 8a2.5 2.5 0 1 0 0-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M2.5 17c.8-3.2 2.4-4.8 4.5-4.8s3.7 1.6 4.5 4.8M12.5 12.5c1.9.3 3.3 1.8 4 4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (name === "billing") {
+    return (
+      <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden="true">
+        <path d="M3 6.5A2.5 2.5 0 0 1 5.5 4h9A2.5 2.5 0 0 1 17 6.5v7A2.5 2.5 0 0 1 14.5 16h-9A2.5 2.5 0 0 1 3 13.5v-7Z" stroke="currentColor" strokeWidth="1.8" />
+        <path d="M3 8h14M6 12h3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden="true">
+      <path d="M4 10.5 10 4l6 6.5V17H4v-6.5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M8 17v-5h4v5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -27,45 +82,61 @@ export default function Sidebar() {
     (item) => !item.adminOnly || user?.role === "org_admin" || user?.role === "super_admin"
   );
 
+  const initials = (user?.full_name || user?.email || "U").slice(0, 1).toUpperCase();
+
   return (
-    <aside className="w-56 shrink-0 bg-white border-r border-gray-200 flex flex-col h-screen sticky top-0">
-      <div className="px-5 py-5 border-b border-gray-100">
-        <span className="text-blue-600 font-bold text-lg">SalesOnRoad</span>
-        {user?.organization_name && (
-          <p className="text-xs text-gray-400 truncate mt-0.5">{user.organization_name}</p>
-        )}
+    <aside className="flex h-screen w-20 shrink-0 flex-col border-r border-white/30 bg-[#170342] text-white shadow-[18px_0_50px_rgba(30,0,80,0.18)] md:w-64">
+      <div className="relative overflow-hidden border-b border-white/10 px-3 py-6 md:px-5">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_0%,rgba(168,85,247,0.45),transparent_55%)]" />
+        <div className="relative flex items-center justify-center gap-3 md:justify-start">
+          <VanLogo className="h-11 w-11 text-white" />
+          <div className="hidden min-w-0 md:block">
+            <p className="text-lg font-black leading-tight">SalesOnRoad</p>
+            {user?.organization_name && (
+              <p className="mt-0.5 truncate text-xs text-purple-100/80">{user.organization_name}</p>
+            )}
+          </div>
+        </div>
       </div>
 
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      <nav className="flex-1 space-y-1 px-2 py-5 md:px-3">
         {visible.map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
+              className={`flex items-center justify-center gap-3 rounded-xl px-3 py-3 text-sm font-bold transition md:justify-start ${
                 active
-                  ? "bg-blue-50 text-blue-700"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  ? "bg-white text-purple-800 shadow-lg shadow-purple-950/15"
+                  : "text-purple-100/85 hover:bg-white/10 hover:text-white"
               }`}
             >
-              <span className="text-base">{item.icon}</span>
-              {item.label}
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-current/10">
+                <NavIcon name={item.icon} />
+              </span>
+              <span className="hidden md:inline">{item.label}</span>
             </Link>
           );
         })}
       </nav>
 
-      <div className="px-3 py-4 border-t border-gray-100">
-        <div className="px-3 mb-3">
-          <p className="text-sm font-medium text-gray-800 truncate">{user?.full_name || user?.email}</p>
-          <p className="text-xs text-gray-400 capitalize">{user?.role?.replace("_", " ")}</p>
+      <div className="border-t border-white/10 p-2 md:p-4">
+        <div className="mb-3 flex items-center justify-center gap-3 rounded-2xl bg-white/10 p-3 md:justify-start">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-sm font-black text-purple-800">
+            {initials}
+          </div>
+          <div className="hidden min-w-0 md:block">
+            <p className="truncate text-sm font-bold">{user?.full_name || user?.email}</p>
+            <p className="text-xs capitalize text-purple-100/75">{user?.role?.replace("_", " ")}</p>
+          </div>
         </div>
         <button
           onClick={handleLogout}
-          className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+          className="w-full rounded-xl px-2 py-2.5 text-center text-xs font-bold text-purple-100/80 transition hover:bg-red-500/15 hover:text-white md:px-3 md:text-left md:text-sm"
         >
-          Sign out
+          <span className="md:hidden">Out</span>
+          <span className="hidden md:inline">Sign out</span>
         </button>
       </div>
     </aside>

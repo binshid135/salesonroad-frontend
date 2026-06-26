@@ -69,8 +69,11 @@ export const dashboardAPI = {
 // Team
 export const teamAPI = {
   list: () => api.get("/team/"),
-  invite: (email: string, full_name: string) =>
-    api.post("/team/invite/", { email, full_name }),
+  invite: (email: string, full_name: string, password: string) =>
+    api.post("/team/invite/", { email, full_name, password }),
+  update: (id: string, data: Partial<User> & { password?: string }) =>
+    api.patch(`/team/${id}/`, data),
+  delete: (id: string) => api.delete(`/team/${id}/`),
 };
 
 // Billing

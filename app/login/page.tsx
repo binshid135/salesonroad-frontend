@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { AuthCard, AuthDivider, AuthError, AuthSecondaryLink, AuthShell, AuthTextField } from "@/components/AuthShell";
 import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
@@ -10,6 +10,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -18,80 +19,67 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const u = await login(email, password);
-      router.push(u.role === "super_admin" ? "/super-admin" : "/dashboard");
+      const user = await login(email, password);
+      router.push(user.role === "super_admin" ? "/super-admin" : "/dashboard");
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data
-          ?.detail || "Login failed. Check your credentials.";
-      setError(msg);
+      const message =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+        "Login failed. Check your credentials.";
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-blue-600">SalesOnRoad</h1>
-          <p className="text-gray-500 mt-1 text-sm">Sign in to your account</p>
-        </div>
+    <AuthShell>
+      <AuthCard title="Welcome Back!" subtitle="Login to continue to Sales on Road" version="Version 1.0.0">
+        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+          {error && <AuthError message={error} />}
 
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-4"
-        >
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
-              {error}
-            </div>
-          )}
+          <AuthTextField
+            id="email"
+            icon="email"
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            placeholder="you@company.com"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="you@company.com"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="••••••••"
-            />
-          </div>
+          <AuthTextField
+            id="password"
+            icon="password"
+            label="Password"
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            placeholder="Enter your password"
+            action={
+              <button
+                type="button"
+                onClick={() => setShowPassword((value) => !value)}
+                className="rounded-md px-1 text-xs font-semibold text-gray-500 hover:text-purple-700"
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            }
+          />
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60"
+            className="h-14 w-full rounded-xl bg-gradient-to-r from-purple-700 to-violet-600 text-base font-bold text-white shadow-lg shadow-purple-700/25 transition hover:from-purple-800 hover:to-violet-700 disabled:opacity-60"
           >
-            {loading ? "Signing in…" : "Sign In"}
+            {loading ? "Signing in..." : "Login"}
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-500 mt-4">
-          No account?{" "}
-          <Link href="/register" className="text-blue-600 hover:underline font-medium">
-            Create one free
-          </Link>
-        </p>
-      </div>
-    </div>
+        <AuthDivider />
+        <AuthSecondaryLink href="/register">Create company account</AuthSecondaryLink>
+      </AuthCard>
+    </AuthShell>
   );
 }

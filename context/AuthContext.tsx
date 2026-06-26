@@ -20,19 +20,43 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+interface AuthState {
+  user: User | null;
+  token: string | null;
+}
+
+function getStoredAuth(): AuthState {
+  if (typeof window === "undefined") {
+    return { user: null, token: null };
+  }
+
+  const storedToken = localStorage.getItem("token");
+  const storedUser = localStorage.getItem("user");
+
+  if (!storedToken || !storedUser) {
+    return { user: null, token: null };
+  }
+
+  try {
+    return { token: storedToken, user: JSON.parse(storedUser) as User };
+  } catch {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    return { user: null, token: null };
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [{ user, token }, setAuth] = useState<AuthState>({ user: null, token: null });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    const timeoutId = window.setTimeout(() => {
+      setAuth(getStoredAuth());
+      setLoading(false);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   const login = async (email: string, password: string): Promise<User> => {
@@ -40,8 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { token: t, user: u } = res.data;
     localStorage.setItem("token", t);
     localStorage.setItem("user", JSON.stringify(u));
-    setToken(t);
-    setUser(u);
+    setAuth({ token: t, user: u });
     return u;
   };
 
@@ -53,8 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    setToken(null);
-    setUser(null);
+    setAuth({ token: null, user: null });
   };
 
   const register = async (data: {
@@ -68,8 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { token: t, user: u } = res.data;
     localStorage.setItem("token", t);
     localStorage.setItem("user", JSON.stringify(u));
-    setToken(t);
-    setUser(u);
+    setAuth({ token: t, user: u });
   };
 
   return (

@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import AuthGuard from "@/components/AuthGuard";
-import Sidebar from "@/components/Sidebar";
+import { AppShell, Card, PageHeader, StatusBadge } from "@/components/AppShell";
 import { billingAPI, BillingInfo } from "@/lib/api";
 
 const PLANS = [
@@ -43,14 +42,14 @@ function UsageBar({ used, limit, label }: { used: number; limit: number; label: 
 
   return (
     <div>
-      <div className="flex justify-between text-xs text-gray-600 mb-1">
+      <div className="mb-1 flex justify-between text-xs font-semibold text-[#6d6478]">
         <span>{label}</span>
-        <span>{unlimited ? `${used} / ∞` : `${used} / ${limit}`}</span>
+        <span>{unlimited ? `${used} / unlimited` : `${used} / ${limit}`}</span>
       </div>
       {!unlimited && (
-        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+        <div className="h-2 overflow-hidden rounded-full bg-purple-100">
           <div
-            className={`h-full rounded-full transition-all ${warn ? "bg-orange-500" : "bg-blue-500"}`}
+            className={`h-full rounded-full transition-all ${warn ? "bg-amber-500" : "bg-purple-600"}`}
             style={{ width: `${pct}%` }}
           />
         </div>
@@ -59,7 +58,7 @@ function UsageBar({ used, limit, label }: { used: number; limit: number; label: 
   );
 }
 
-export default function BillingPage() {
+function BillingContent() {
   const searchParams = useSearchParams();
   const [info, setInfo] = useState<BillingInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -71,8 +70,8 @@ export default function BillingPage() {
   const cancelled = searchParams.get("cancelled");
 
   useEffect(() => {
-    billingAPI.current().then((r) => {
-      setInfo(r.data);
+    billingAPI.current().then((response) => {
+      setInfo(response.data);
       setLoading(false);
     });
   }, []);
@@ -81,11 +80,11 @@ export default function BillingPage() {
     setError("");
     setCheckoutLoading(tier);
     try {
-      const res = await billingAPI.checkout(tier);
-      window.location.href = res.data.checkout_url;
+      const response = await billingAPI.checkout(tier);
+      window.location.assign(response.data.checkout_url);
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setError(msg || "Stripe is not configured yet. Add your API keys to proceed.");
+      const message = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      setError(message || "Stripe is not configured yet. Add your API keys to proceed.");
       setCheckoutLoading(null);
     }
   };
@@ -94,8 +93,8 @@ export default function BillingPage() {
     setError("");
     setPortalLoading(true);
     try {
-      const res = await billingAPI.portal();
-      window.location.href = res.data.portal_url;
+      const response = await billingAPI.portal();
+      window.location.assign(response.data.portal_url);
     } catch {
       setError("Stripe is not configured yet.");
       setPortalLoading(false);
@@ -105,162 +104,135 @@ export default function BillingPage() {
   const currentTierIndex = TIER_ORDER.indexOf(info?.tier ?? "free");
 
   return (
-    <AuthGuard>
-      <div className="flex h-screen overflow-hidden">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto px-6 py-6">
-          <div className="max-w-3xl mx-auto">
-            <h1 className="text-xl font-bold text-gray-900 mb-6">Billing & Plan</h1>
+    <AppShell>
+      <PageHeader title="Billing & Plan" subtitle="Review usage, manage subscriptions, and choose the right plan." />
 
-            {success && (
-              <div className="mb-5 bg-green-50 border border-green-200 text-green-700 text-sm rounded-xl px-5 py-4">
-                Payment successful! Your plan has been upgraded.
+      {success && <div className="app-alert-success mb-5">Payment successful! Your plan has been upgraded.</div>}
+      {cancelled && <div className="app-alert-warning mb-5">Checkout cancelled. Your plan was not changed.</div>}
+      {error && <div className="app-alert-error mb-5">{error}</div>}
+
+      {loading ? (
+        <div className="space-y-4">
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="h-32 animate-pulse rounded-2xl bg-purple-100/70" />
+          ))}
+        </div>
+      ) : (
+        <>
+          <Card className="mb-6 p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h2 className="app-section-title">Current Plan</h2>
+                <div className="mt-1 flex items-baseline gap-2">
+                  <span className="text-3xl font-black capitalize text-[#130824]">{info?.tier}</span>
+                  <span className="text-sm text-[#6d6478]">${info?.price_per_month}/mo</span>
+                </div>
               </div>
+              <div className="text-right">
+                <StatusBadge tone={info?.status === "active" ? "success" : "danger"}>{info?.status}</StatusBadge>
+                {info?.current_period_end && (
+                  <p className="mt-1 text-xs text-[#6d6478]">
+                    Renews {new Date(info.current_period_end).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <UsageBar label="Salesmen" used={info?.usage.salesmen ?? 0} limit={info?.limits.salesmen ?? 1} />
+              <UsageBar label="Items" used={info?.usage.items ?? 0} limit={info?.limits.items ?? 50} />
+              <UsageBar
+                label="Orders this month"
+                used={info?.usage.orders_month ?? 0}
+                limit={info?.limits.orders_month ?? 100}
+              />
+            </div>
+
+            {info?.stripe_subscription_id && (
+              <button
+                onClick={handlePortal}
+                disabled={portalLoading}
+                className="mt-4 text-sm font-bold text-purple-700 hover:text-purple-900 disabled:opacity-60"
+              >
+                {portalLoading ? "Opening portal..." : "Manage subscription in Stripe"}
+              </button>
             )}
-            {cancelled && (
-              <div className="mb-5 bg-yellow-50 border border-yellow-200 text-yellow-700 text-sm rounded-xl px-5 py-4">
-                Checkout cancelled. Your plan was not changed.
-              </div>
-            )}
-            {error && (
-              <div className="mb-5 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-5 py-4">
-                {error}
-              </div>
-            )}
+          </Card>
 
-            {loading ? (
-              <div className="space-y-4">
-                {[...Array(2)].map((_, i) => (
-                  <div key={i} className="h-32 bg-gray-100 rounded-xl animate-pulse" />
-                ))}
-              </div>
-            ) : (
-              <>
-                {/* Current plan */}
-                <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h2 className="text-sm font-semibold text-gray-700">Current Plan</h2>
-                      <div className="flex items-baseline gap-2 mt-1">
-                        <span className="text-2xl font-bold text-gray-900 capitalize">
-                          {info?.tier}
-                        </span>
-                        <span className="text-gray-400 text-sm">
-                          ${info?.price_per_month}/mo
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                        info?.status === "active"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-600"
-                      }`}>
-                        {info?.status}
-                      </span>
-                      {info?.current_period_end && (
-                        <p className="text-xs text-gray-400 mt-1">
-                          Renews {new Date(info.current_period_end).toLocaleDateString()}
-                        </p>
-                      )}
-                    </div>
-                  </div>
+          <h2 className="app-section-title mb-3">Change Plan</h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {PLANS.map((plan, idx) => {
+              const isCurrent = plan.tier === info?.tier;
+              const isDowngrade = idx < currentTierIndex;
 
-                  {/* Usage */}
-                  <div className="space-y-3">
-                    <UsageBar
-                      label="Salesmen"
-                      used={info?.usage.salesmen ?? 0}
-                      limit={info?.limits.salesmen ?? 1}
-                    />
-                    <UsageBar
-                      label="Items"
-                      used={info?.usage.items ?? 0}
-                      limit={info?.limits.items ?? 50}
-                    />
-                    <UsageBar
-                      label="Orders this month"
-                      used={info?.usage.orders_month ?? 0}
-                      limit={info?.limits.orders_month ?? 100}
-                    />
-                  </div>
+              return (
+                <div
+                  key={plan.tier}
+                  className={`flex flex-col rounded-2xl border p-4 shadow-[0_18px_50px_rgba(30,0,80,0.08)] ${
+                    isCurrent
+                      ? "border-purple-500 bg-purple-50"
+                      : plan.highlight
+                      ? "border-violet-300 bg-violet-50"
+                      : "border-[#e9e1f5] bg-white"
+                  }`}
+                >
+                  <p className="text-sm font-black text-[#130824]">{plan.name}</p>
+                  <p className="mb-3 mt-1 text-2xl font-black text-[#130824]">
+                    ${plan.price}
+                    <span className="text-xs font-semibold text-[#6d6478]">/mo</span>
+                  </p>
+                  <ul className="mb-4 flex-1 space-y-1">
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex gap-2 text-xs text-[#6d6478]">
+                        <span className="text-emerald-600">✓</span> {feature}
+                      </li>
+                    ))}
+                  </ul>
 
-                  {info?.stripe_subscription_id && (
+                  {isCurrent ? (
+                    <span className="block py-2 text-center text-xs font-bold text-purple-700">Current plan</span>
+                  ) : plan.tier === "free" ? (
+                    <span className="block py-2 text-center text-xs text-[#6d6478]">Downgrade via portal</span>
+                  ) : (
                     <button
-                      onClick={handlePortal}
-                      disabled={portalLoading}
-                      className="mt-4 text-sm text-blue-600 hover:underline disabled:opacity-60"
+                      onClick={() => handleUpgrade(plan.tier)}
+                      disabled={checkoutLoading === plan.tier}
+                      className="app-btn-primary h-10 w-full text-xs"
                     >
-                      {portalLoading ? "Opening portal…" : "Manage subscription in Stripe →"}
+                      {checkoutLoading === plan.tier
+                        ? "Redirecting..."
+                        : isDowngrade
+                        ? `Downgrade to ${plan.name}`
+                        : `Upgrade to ${plan.name}`}
                     </button>
                   )}
                 </div>
-
-                {/* Upgrade options */}
-                <h2 className="text-sm font-semibold text-gray-700 mb-3">Change Plan</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {PLANS.map((plan, idx) => {
-                    const isCurrent = plan.tier === info?.tier;
-                    const isDowngrade = idx < currentTierIndex;
-
-                    return (
-                      <div
-                        key={plan.tier}
-                        className={`rounded-xl border p-4 flex flex-col ${
-                          isCurrent
-                            ? "border-blue-500 bg-blue-50"
-                            : plan.highlight
-                            ? "border-violet-200 bg-violet-50"
-                            : "border-gray-200 bg-white"
-                        }`}
-                      >
-                        <p className="text-sm font-bold text-gray-900">{plan.name}</p>
-                        <p className="text-xl font-bold text-gray-900 mt-1 mb-3">
-                          ${plan.price}
-                          <span className="text-xs font-normal text-gray-400">/mo</span>
-                        </p>
-                        <ul className="space-y-1 flex-1 mb-4">
-                          {plan.features.map((f) => (
-                            <li key={f} className="text-xs text-gray-600 flex gap-1">
-                              <span className="text-green-500">✓</span> {f}
-                            </li>
-                          ))}
-                        </ul>
-
-                        {isCurrent ? (
-                          <span className="block text-center text-xs font-medium text-blue-600 py-2">
-                            Current plan
-                          </span>
-                        ) : plan.tier === "free" ? (
-                          <span className="block text-center text-xs text-gray-400 py-2">
-                            Downgrade via portal
-                          </span>
-                        ) : (
-                          <button
-                            onClick={() => handleUpgrade(plan.tier)}
-                            disabled={checkoutLoading === plan.tier}
-                            className="w-full py-2 bg-gray-900 hover:bg-gray-800 text-white text-xs font-semibold rounded-lg transition disabled:opacity-60"
-                          >
-                            {checkoutLoading === plan.tier
-                              ? "Redirecting…"
-                              : isDowngrade
-                              ? `Downgrade to ${plan.name}`
-                              : `Upgrade to ${plan.name}`}
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <p className="text-xs text-gray-400 text-center mt-4">
-                  Payments powered by Stripe. Cancel any time.
-                </p>
-              </>
-            )}
+              );
+            })}
           </div>
-        </main>
-      </div>
-    </AuthGuard>
+
+          <p className="mt-4 text-center text-xs text-[#6d6478]">Payments powered by Stripe. Cancel any time.</p>
+        </>
+      )}
+    </AppShell>
+  );
+}
+
+export default function BillingPage() {
+  return (
+    <Suspense
+      fallback={
+        <AppShell>
+          <PageHeader title="Billing & Plan" subtitle="Review usage, manage subscriptions, and choose the right plan." />
+          <div className="space-y-4">
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="h-32 animate-pulse rounded-2xl bg-purple-100/70" />
+            ))}
+          </div>
+        </AppShell>
+      }
+    >
+      <BillingContent />
+    </Suspense>
   );
 }
