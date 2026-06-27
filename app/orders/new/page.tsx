@@ -10,6 +10,14 @@ interface CartEntry {
   qty: number;
 }
 
+const buttonPrimary =
+  "inline-flex items-center justify-center gap-2 rounded-xl bg-[#6d28d9] px-4 py-2.5 text-sm font-black text-white shadow-lg shadow-purple-900/15 transition hover:bg-[#581c87] disabled:cursor-not-allowed disabled:opacity-60";
+const inputClass =
+  "w-full rounded-xl border border-purple-100 bg-white px-3 py-2.5 text-sm font-semibold text-[#130824] outline-none transition placeholder:text-[#9c92aa] focus:border-purple-400 focus:ring-4 focus:ring-purple-100";
+const labelClass = "mb-1.5 block text-xs font-black uppercase tracking-wide text-[#6d6478]";
+const sectionTitleClass = "text-lg font-black text-[#130824]";
+const alertErrorClass = "rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700";
+
 export default function NewOrderPage() {
   const router = useRouter();
   const [items, setItems] = useState<Item[]>([]);
@@ -95,32 +103,32 @@ export default function NewOrderPage() {
     <AppShell>
       <PageHeader title="New Order" subtitle="Build a customer order from your active item catalog." />
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
-        <div className="space-y-5">
-          <Card className="p-5">
-            <h2 className="app-section-title mb-4">Customer</h2>
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-5">
+        <div className="min-w-0 space-y-4 lg:space-y-5">
+          <Card className="p-4 sm:p-5">
+            <h2 className={`${sectionTitleClass} mb-4`}>Customer</h2>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="app-label">Name *</label>
+                <label className={labelClass}>Name *</label>
                 <input
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   placeholder="Shop name"
-                  className="app-input"
+                  className={inputClass}
                 />
               </div>
               <div>
-                <label className="app-label">Phone</label>
+                <label className={labelClass}>Phone</label>
                 <input
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
                   placeholder="+971 50 000 0000"
-                  className="app-input"
+                  className={inputClass}
                 />
               </div>
               <div>
-                <label className="app-label">Payment Method</label>
-                <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} className="app-select">
+                <label className={labelClass}>Payment Method</label>
+                <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} className={inputClass}>
                   {["cash", "card", "bank_transfer", "credit"].map((method) => (
                     <option key={method} value={method}>
                       {method.replace("_", " ")}
@@ -129,8 +137,8 @@ export default function NewOrderPage() {
                 </select>
               </div>
               <div>
-                <label className="app-label">Payment Status</label>
-                <select value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)} className="app-select">
+                <label className={labelClass}>Payment Status</label>
+                <select value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)} className={inputClass}>
                   <option value="paid">Paid</option>
                   <option value="pending">Pending</option>
                 </select>
@@ -138,9 +146,9 @@ export default function NewOrderPage() {
             </div>
           </Card>
 
-          <Card className="p-5">
+          <Card className="p-4 sm:p-5">
             <div className="mb-4 flex items-center justify-between gap-3">
-              <h2 className="app-section-title">Add Items</h2>
+              <h2 className={sectionTitleClass}>Add Items</h2>
               <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-bold text-purple-700">
                 {cart.length} selected
               </span>
@@ -150,7 +158,7 @@ export default function NewOrderPage() {
               placeholder="Search items..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="app-input mb-4"
+              className={`${inputClass} mb-4`}
             />
 
             {loading ? (
@@ -166,7 +174,7 @@ export default function NewOrderPage() {
                   return (
                     <div
                       key={item.id}
-                      className="flex items-center justify-between rounded-2xl border border-[#eee7f8] bg-white px-3 py-3 transition hover:border-purple-200 hover:bg-purple-50/50"
+                      className="flex items-center justify-between gap-3 rounded-2xl border border-[#eee7f8] bg-white px-3 py-3 transition hover:border-purple-200 hover:bg-purple-50/50"
                     >
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-bold text-[#130824]">{item.name}</p>
@@ -175,7 +183,7 @@ export default function NewOrderPage() {
                           {parseFloat(item.gst_rate) > 0 && ` + ${item.gst_rate}% GST`}
                         </p>
                       </div>
-                      <div className="ml-3 flex items-center gap-2">
+                      <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
                         <button
                           onClick={() => setQty(item, qty - 1)}
                           className="grid h-8 w-8 place-items-center rounded-full bg-purple-100 font-black text-purple-700 disabled:opacity-40"
@@ -197,8 +205,8 @@ export default function NewOrderPage() {
         </div>
 
         <div className="space-y-4">
-          <Card className="sticky top-6 p-5">
-            <h2 className="app-section-title mb-4">Order Summary</h2>
+          <Card className="p-4 sm:p-5 lg:sticky lg:top-6">
+            <h2 className={`${sectionTitleClass} mb-4`}>Order Summary</h2>
             {cart.length === 0 ? (
               <p className="rounded-2xl bg-purple-50 p-4 text-sm text-[#6d6478]">Add items to build the order total.</p>
             ) : (
@@ -230,12 +238,12 @@ export default function NewOrderPage() {
               </div>
             )}
 
-            {error && <div className="app-alert-error mt-4">{error}</div>}
+            {error && <div className={`${alertErrorClass} mt-4`}>{error}</div>}
 
             <button
               onClick={handleSubmit}
               disabled={submitting || cart.length === 0}
-              className="app-btn-primary mt-5 w-full"
+              className={`${buttonPrimary} mt-5 w-full whitespace-normal text-center`}
             >
               {submitting ? "Placing Order..." : `Place Order - AED ${total.toFixed(2)}`}
             </button>

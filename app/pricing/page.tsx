@@ -45,21 +45,21 @@ const PLANS = [
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-16">
+    <div className="min-h-screen bg-gray-50 px-3 py-10 sm:px-4 sm:py-16">
       <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-12">
+        <div className="mb-10 text-center sm:mb-12">
           <Link href="/" className="text-2xl font-bold text-blue-600">SalesOnRoad</Link>
-          <h1 className="text-4xl font-bold text-gray-900 mt-6 mb-3">Simple, transparent pricing</h1>
+          <h1 className="mb-3 mt-6 text-3xl font-bold text-gray-900 sm:text-4xl">Simple, transparent pricing</h1>
           <p className="text-gray-500">No setup fees. Cancel any time. Start free.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4 md:gap-5">
           {PLANS.map((plan) => (
             <div
               key={plan.name}
-              className={`rounded-2xl border p-6 flex flex-col ${
+              className={`flex flex-col rounded-2xl border p-5 sm:p-6 ${
                 plan.highlight
-                  ? "bg-blue-600 border-blue-600 text-white shadow-xl scale-105"
+                  ? "border-blue-600 bg-blue-600 text-white shadow-xl md:scale-105"
                   : "bg-white border-gray-200"
               }`}
             >

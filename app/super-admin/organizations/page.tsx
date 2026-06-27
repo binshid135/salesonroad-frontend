@@ -39,25 +39,25 @@ export default function OrganizationsPage() {
 
   return (
     <SuperAdminGuard>
-      <div className="flex h-screen overflow-hidden">
+      <div className="flex min-h-screen bg-gray-50 md:h-screen md:overflow-hidden">
         <SuperAdminSidebar />
-        <main className="flex-1 overflow-y-auto px-6 py-6 bg-gray-50">
+        <main className="flex-1 overflow-y-auto bg-gray-50 px-3 py-4 pb-24 sm:px-6 sm:py-6 md:pb-6">
           <div className="max-w-6xl mx-auto">
             <h1 className="text-xl font-bold text-gray-900 mb-6">Organizations</h1>
 
             {/* Filters */}
-            <div className="flex gap-3 mb-5 flex-wrap">
+            <div className="mb-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
               <input
                 type="search"
                 placeholder="Search name or subdomain…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="flex-1 min-w-48 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                className="min-w-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
               />
               <select
                 value={tierFilter}
                 onChange={(e) => setTierFilter(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
               >
                 <option value="">All plans</option>
                 {["free", "starter", "pro", "enterprise"].map((t) => (
@@ -67,7 +67,7 @@ export default function OrganizationsPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
               >
                 <option value="">All statuses</option>
                 {["active", "suspended", "cancelled"].map((s) => (
@@ -85,8 +85,9 @@ export default function OrganizationsPage() {
                 ))}
               </div>
             ) : (
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <table className="w-full text-sm">
+              <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+                <div className="overflow-x-auto">
+                <table className="min-w-[62rem] text-sm">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       {["Company", "Subdomain", "Plan", "Status", "Users", "Orders", "Joined", ""].map((h) => (
@@ -137,6 +138,7 @@ export default function OrganizationsPage() {
                     ))}
                   </tbody>
                 </table>
+                </div>
 
                 {orgs.length === 0 && (
                   <div className="py-12 text-center text-gray-400 text-sm">

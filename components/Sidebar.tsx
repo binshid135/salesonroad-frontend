@@ -85,8 +85,8 @@ export default function Sidebar() {
   const initials = (user?.full_name || user?.email || "U").slice(0, 1).toUpperCase();
 
   return (
-    <aside className="flex h-screen w-20 shrink-0 flex-col border-r border-white/30 bg-[#170342] text-white shadow-[18px_0_50px_rgba(30,0,80,0.18)] md:w-64">
-      <div className="relative overflow-hidden border-b border-white/10 px-3 py-6 md:px-5">
+    <aside className="fixed inset-x-0 bottom-0 z-40 flex h-20 flex-row border-t border-white/20 bg-[#170342] text-white shadow-[0_-18px_50px_rgba(30,0,80,0.18)] md:sticky md:top-0 md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-t-0 md:border-white/30 md:shadow-[18px_0_50px_rgba(30,0,80,0.18)]">
+      <div className="relative hidden overflow-hidden border-b border-white/10 px-3 py-6 md:block md:px-5">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_0%,rgba(168,85,247,0.45),transparent_55%)]" />
         <div className="relative flex items-center justify-center gap-3 md:justify-start">
           <VanLogo className="h-11 w-11 text-white" />
@@ -99,29 +99,29 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <nav className="flex-1 space-y-1 px-2 py-5 md:px-3">
+      <nav className="flex flex-1 items-center gap-1 overflow-x-auto px-2 py-2 md:block md:space-y-1 md:overflow-visible md:px-3 md:py-5">
         {visible.map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center justify-center gap-3 rounded-xl px-3 py-3 text-sm font-bold transition md:justify-start ${
+              className={`flex min-w-[4.5rem] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 text-[11px] font-bold transition md:min-w-0 md:flex-row md:gap-3 md:px-3 md:py-3 md:text-sm md:justify-start ${
                 active
                   ? "bg-white text-purple-800 shadow-lg shadow-purple-950/15"
                   : "text-purple-100/85 hover:bg-white/10 hover:text-white"
               }`}
             >
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-current/10">
+              <span className="grid h-7 w-7 place-items-center rounded-lg bg-current/10 md:h-8 md:w-8">
                 <NavIcon name={item.icon} />
               </span>
-              <span className="hidden md:inline">{item.label}</span>
+              <span className="max-w-full truncate md:inline">{item.label}</span>
             </Link>
           );
         })}
       </nav>
 
-      <div className="border-t border-white/10 p-2 md:p-4">
+      <div className="hidden border-t border-white/10 p-2 md:block md:p-4">
         <div className="mb-3 flex items-center justify-center gap-3 rounded-2xl bg-white/10 p-3 md:justify-start">
           <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-sm font-black text-purple-800">
             {initials}

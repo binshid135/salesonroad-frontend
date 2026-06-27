@@ -82,7 +82,7 @@ function FieldIcon({ type }: { type: FieldIconType }) {
 export function AuthShell({ children }: { children: ReactNode }) {
   return (
     <main className="min-h-screen bg-[#15003f] text-white lg:grid lg:grid-cols-[1.08fr_0.92fr]">
-      <section className="relative min-h-[42vh] overflow-hidden px-6 py-8 sm:px-10 lg:min-h-screen lg:px-14 lg:py-12">
+      <section className="relative min-h-[34vh] overflow-hidden px-5 py-6 sm:min-h-[42vh] sm:px-10 sm:py-8 lg:min-h-screen lg:px-14 lg:py-12">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_68%_34%,rgba(168,85,247,0.55),transparent_32%),linear-gradient(135deg,#180063_0%,#4b08ca_46%,#8a16ff_100%)]" />
         <div className="absolute inset-0 opacity-25">
           <div className="absolute left-[6%] top-[18%] h-48 w-[86%] rotate-[-13deg] rounded-[50%] border-t border-white/25" />
@@ -92,26 +92,26 @@ export function AuthShell({ children }: { children: ReactNode }) {
         </div>
         <div className="absolute bottom-0 left-0 right-0 h-[38%] bg-gradient-to-t from-[#070019] via-[#13003f]/80 to-transparent" />
 
-        <div className="relative z-10 flex min-h-[42vh] max-w-2xl flex-col lg:min-h-[calc(100vh-6rem)]">
+        <div className="relative z-10 flex min-h-[34vh] max-w-2xl flex-col sm:min-h-[42vh] lg:min-h-[calc(100vh-6rem)]">
           <div className="flex items-center gap-4">
-            <VanLogo className="h-14 w-14 text-white" />
+            <VanLogo className="h-12 w-12 text-white sm:h-14 sm:w-14" />
             <div className="leading-none">
-              <p className="text-2xl font-black uppercase">Sales</p>
-              <p className="text-lg font-semibold uppercase">On Road</p>
+              <p className="text-xl font-black uppercase sm:text-2xl">Sales</p>
+              <p className="text-base font-semibold uppercase sm:text-lg">On Road</p>
             </div>
           </div>
 
-          <div className="mt-10 max-w-xl lg:mt-14">
-            <h1 className="text-4xl font-black leading-tight sm:text-5xl">
+          <div className="mt-7 max-w-xl sm:mt-10 lg:mt-14">
+            <h1 className="text-3xl font-black leading-tight sm:text-5xl">
               Drive Sales.
               <span className="block text-purple-200">Every Road. Every Customer.</span>
             </h1>
-            <p className="mt-6 max-w-md text-base leading-7 text-purple-50/90 sm:text-lg">
+            <p className="mt-4 max-w-md text-sm leading-6 text-purple-50/90 sm:mt-6 sm:text-lg sm:leading-7">
               Empowering your field sales team to manage routes, customers, items, and orders in one place.
             </p>
           </div>
 
-          <div className="mt-8 grid gap-4 text-sm sm:grid-cols-2 lg:mt-10 lg:grid-cols-1">
+          <div className="mt-6 hidden gap-4 text-sm sm:grid sm:grid-cols-2 lg:mt-10 lg:grid-cols-1">
             {featureHighlights.map(([title, body]) => (
               <div key={title} className="flex items-center gap-3">
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/15 ring-1 ring-white/20">
@@ -139,7 +139,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
         </div>
       </section>
 
-      <section className="flex items-center justify-center bg-[#f7f5ff] px-5 py-8 text-gray-950 lg:min-h-screen lg:px-10">
+      <section className="flex items-center justify-center bg-[#f7f5ff] px-3 py-5 text-gray-950 sm:px-5 sm:py-8 lg:min-h-screen lg:px-10">
         {children}
       </section>
     </main>
@@ -160,13 +160,13 @@ export function AuthCard({
   version?: string;
 }) {
   return (
-    <div className="w-full max-w-md rounded-[28px] border border-white bg-white/95 p-7 shadow-[0_24px_80px_rgba(30,0,80,0.22)] sm:p-9">
-      <div className="mx-auto grid h-24 w-24 place-items-center rounded-full bg-purple-50 text-purple-700 shadow-[0_12px_34px_rgba(126,34,206,0.2)]">
-        <VanLogo className="h-14 w-14" />
+    <div className="w-full max-w-md rounded-2xl border border-white bg-white/95 p-5 shadow-[0_24px_80px_rgba(30,0,80,0.22)] sm:rounded-[28px] sm:p-9">
+      <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-purple-50 text-purple-700 shadow-[0_12px_34px_rgba(126,34,206,0.2)] sm:h-24 sm:w-24">
+        <VanLogo className="h-12 w-12 sm:h-14 sm:w-14" />
       </div>
 
-      <div className="mt-7 text-center">
-        <h2 className="text-3xl font-black text-gray-950">{title}</h2>
+      <div className="mt-5 text-center sm:mt-7">
+        <h2 className="text-2xl font-black text-gray-950 sm:text-3xl">{title}</h2>
         <p className="mt-2 text-sm text-gray-500">{subtitle}</p>
       </div>
 
@@ -196,7 +196,7 @@ export function AuthTextField({
       <label htmlFor={inputProps.id} className="block text-sm font-semibold text-gray-900">
         {label}
       </label>
-      <div className="mt-2 flex h-14 items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 text-purple-700 shadow-sm focus-within:border-purple-500 focus-within:ring-4 focus-within:ring-purple-100">
+      <div className="mt-2 flex h-12 items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 text-purple-700 shadow-sm focus-within:border-purple-500 focus-within:ring-4 focus-within:ring-purple-100 sm:h-14 sm:px-4">
         <FieldIcon type={icon} />
         <input
           {...inputProps}

@@ -4,6 +4,21 @@ import { useEffect, useState } from "react";
 import { AppShell, EmptyState, PageHeader, PlusIcon, StatusBadge } from "@/components/AppShell";
 import { teamAPI, User } from "@/lib/api";
 
+const buttonPrimary =
+  "inline-flex items-center justify-center gap-2 rounded-xl bg-[#6d28d9] px-4 py-2.5 text-sm font-black text-white shadow-lg shadow-purple-900/15 transition hover:bg-[#581c87] disabled:cursor-not-allowed disabled:opacity-60";
+const buttonSecondary =
+  "inline-flex items-center justify-center gap-2 rounded-xl border border-purple-200 bg-white px-4 py-2.5 text-sm font-black text-purple-800 transition hover:bg-purple-50 disabled:cursor-not-allowed disabled:opacity-60";
+const inputClass =
+  "w-full rounded-xl border border-purple-100 bg-white px-3 py-2.5 text-sm font-semibold text-[#130824] outline-none transition placeholder:text-[#9c92aa] focus:border-purple-400 focus:ring-4 focus:ring-purple-100";
+const labelClass = "mb-1.5 block text-xs font-black uppercase tracking-wide text-[#6d6478]";
+const tableWrapClass = "overflow-x-auto rounded-2xl border border-white/80 bg-white shadow-[0_16px_40px_rgba(54,22,92,0.08)]";
+const thClass = "bg-purple-50 px-4 py-3 text-xs font-black uppercase tracking-wide text-[#6d6478]";
+const tdClass = "px-4 py-3 text-[#130824]";
+const modalBackdropClass = "fixed inset-0 z-50 grid place-items-center bg-[#130824]/55 p-4 backdrop-blur-sm";
+const modalClass = "max-h-[calc(100vh-2rem)] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-4 shadow-2xl shadow-purple-950/25 sm:p-5";
+const alertErrorClass = "rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700";
+const alertSuccessClass = "rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700";
+
 export default function TeamPage() {
   const [team, setTeam] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -128,14 +143,14 @@ export default function TeamPage() {
               setInviteResult(null);
               setError("");
             }}
-            className="app-btn-primary"
+            className={`${buttonPrimary} w-full sm:w-auto`}
           >
             <PlusIcon /> Add Salesman
           </button>
         }
       />
 
-      {error && !showInvite && !editingMember && <div className="app-alert-error mb-4">{error}</div>}
+      {error && !showInvite && !editingMember && <div className={`${alertErrorClass} mb-4`}>{error}</div>}
 
       {loading ? (
         <div className="space-y-3">
@@ -146,12 +161,12 @@ export default function TeamPage() {
       ) : team.length === 0 ? (
         <EmptyState title="No team members yet" body="Add a salesman to begin assigning field orders." />
       ) : (
-        <div className="app-table-wrap">
-          <table className="app-table">
+        <div className={tableWrapClass}>
+          <table className="min-w-[52rem] border-collapse text-left text-sm">
             <thead>
               <tr>
                 {["Name", "Email", "Role", "Status", "Actions"].map((heading) => (
-                  <th key={heading} className="app-th">
+                  <th key={heading} className={thClass}>
                     {heading}
                   </th>
                 ))}
@@ -160,15 +175,15 @@ export default function TeamPage() {
             <tbody className="divide-y divide-[#eee7f8]">
               {team.map((member) => (
                 <tr key={member.id} className="hover:bg-purple-50/50">
-                  <td className="app-td font-bold">{member.full_name || "-"}</td>
-                  <td className="app-td text-[#6d6478]">{member.email}</td>
-                  <td className="app-td capitalize text-[#6d6478]">{member.role.replace("_", " ")}</td>
-                  <td className="app-td">
+                  <td className={`${tdClass} font-bold`}>{member.full_name || "-"}</td>
+                  <td className={`${tdClass} text-[#6d6478]`}>{member.email}</td>
+                  <td className={`${tdClass} capitalize text-[#6d6478]`}>{member.role.replace("_", " ")}</td>
+                  <td className={tdClass}>
                     <StatusBadge tone={member.is_active ? "success" : "danger"}>
                       {member.is_active ? "Active" : "Inactive"}
                     </StatusBadge>
                   </td>
-                  <td className="app-td">
+                  <td className={tdClass}>
                     {member.role === "salesman" ? (
                       <div className="flex gap-3">
                         <button onClick={() => openEdit(member)} className="text-xs font-bold text-purple-700">
@@ -194,40 +209,40 @@ export default function TeamPage() {
       )}
 
       {showInvite && (
-        <div className="app-modal-backdrop">
-          <div className="app-modal">
-            <h2 className="app-section-title mb-4">Add Salesman</h2>
-            {error && <div className="app-alert-error mb-4">{error}</div>}
+        <div className={modalBackdropClass}>
+          <div className={modalClass}>
+            <h2 className="mb-4 text-lg font-black text-[#130824]">Add Salesman</h2>
+            {error && <div className={`${alertErrorClass} mb-4`}>{error}</div>}
 
             {inviteResult ? (
               <div className="space-y-4">
-                <div className="app-alert-success">
+                <div className={alertSuccessClass}>
                   <p className="mb-1 font-bold">Salesman created!</p>
                   <p>{inviteResult.message || "The salesman can now sign in with the password you set."}</p>
                 </div>
-                <button onClick={() => setShowInvite(false)} className="app-btn-primary w-full">
+                <button onClick={() => setShowInvite(false)} className={`${buttonPrimary} w-full`}>
                   Done
                 </button>
               </div>
             ) : (
               <form onSubmit={handleInvite} className="space-y-3">
                 <div>
-                  <label className="app-label">Full Name</label>
-                  <input value={fullName} onChange={(e) => setFullName(e.target.value)} required placeholder="Ahmed Hassan" className="app-input" />
+                  <label className={labelClass}>Full Name</label>
+                  <input value={fullName} onChange={(e) => setFullName(e.target.value)} required placeholder="Ahmed Hassan" className={inputClass} />
                 </div>
                 <div>
-                  <label className="app-label">Email</label>
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="ahmed@company.com" className="app-input" />
+                  <label className={labelClass}>Email</label>
+                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="ahmed@company.com" className={inputClass} />
                 </div>
                 <div>
-                  <label className="app-label">Password</label>
-                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} placeholder="At least 8 characters" className="app-input" />
+                  <label className={labelClass}>Password</label>
+                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} placeholder="At least 8 characters" className={inputClass} />
                 </div>
                 <div className="flex gap-2 pt-1">
-                  <button type="submit" disabled={saving} className="app-btn-primary flex-1">
+                  <button type="submit" disabled={saving} className={`${buttonPrimary} flex-1`}>
                     {saving ? "Adding..." : "Add"}
                   </button>
-                  <button type="button" onClick={() => setShowInvite(false)} className="app-btn-secondary flex-1">
+                  <button type="button" onClick={() => setShowInvite(false)} className={`${buttonSecondary} flex-1`}>
                     Cancel
                   </button>
                 </div>
@@ -238,22 +253,22 @@ export default function TeamPage() {
       )}
 
       {editingMember && (
-        <div className="app-modal-backdrop">
-          <div className="app-modal">
-            <h2 className="app-section-title mb-4">Edit Salesman</h2>
-            {error && <div className="app-alert-error mb-4">{error}</div>}
+        <div className={modalBackdropClass}>
+          <div className={modalClass}>
+            <h2 className="mb-4 text-lg font-black text-[#130824]">Edit Salesman</h2>
+            {error && <div className={`${alertErrorClass} mb-4`}>{error}</div>}
             <form onSubmit={handleUpdate} className="space-y-3">
               <div>
-                <label className="app-label">Full Name</label>
-                <input value={editFullName} onChange={(e) => setEditFullName(e.target.value)} required className="app-input" />
+                <label className={labelClass}>Full Name</label>
+                <input value={editFullName} onChange={(e) => setEditFullName(e.target.value)} required className={inputClass} />
               </div>
               <div>
-                <label className="app-label">Email</label>
-                <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} required className="app-input" />
+                <label className={labelClass}>Email</label>
+                <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} required className={inputClass} />
               </div>
               <div>
-                <label className="app-label">New Password</label>
-                <input type="password" value={editPassword} onChange={(e) => setEditPassword(e.target.value)} minLength={8} placeholder="Leave blank to keep current" className="app-input" />
+                <label className={labelClass}>New Password</label>
+                <input type="password" value={editPassword} onChange={(e) => setEditPassword(e.target.value)} minLength={8} placeholder="Leave blank to keep current" className={inputClass} />
               </div>
               <label className="flex items-center gap-2 text-sm font-semibold text-[#2a1b3f]">
                 <input
@@ -265,10 +280,10 @@ export default function TeamPage() {
                 Active account
               </label>
               <div className="flex gap-2 pt-1">
-                <button type="submit" disabled={saving} className="app-btn-primary flex-1">
+                <button type="submit" disabled={saving} className={`${buttonPrimary} flex-1`}>
                   {saving ? "Saving..." : "Save"}
                 </button>
-                <button type="button" onClick={() => setEditingMember(null)} className="app-btn-secondary flex-1">
+                <button type="button" onClick={() => setEditingMember(null)} className={`${buttonSecondary} flex-1`}>
                   Cancel
                 </button>
               </div>

@@ -55,14 +55,14 @@ export default function SuperAdminDashboard() {
 
   return (
     <SuperAdminGuard>
-      <div className="flex h-screen overflow-hidden">
+      <div className="flex min-h-screen bg-gray-50 md:h-screen md:overflow-hidden">
         <SuperAdminSidebar />
-        <main className="flex-1 overflow-y-auto px-6 py-6 bg-gray-50">
+        <main className="flex-1 overflow-y-auto bg-gray-50 px-3 py-4 pb-24 sm:px-6 sm:py-6 md:pb-6">
           <div className="max-w-5xl mx-auto">
             <h1 className="text-xl font-bold text-gray-900 mb-6">Platform Overview</h1>
 
             {loading ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 md:grid-cols-4 md:gap-4">
                 {[...Array(6)].map((_, i) => (
                   <div key={i} className="h-28 bg-gray-200 rounded-xl animate-pulse" />
                 ))}
@@ -70,7 +70,7 @@ export default function SuperAdminDashboard() {
             ) : (
               <>
                 {/* KPI row */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                <div className="mb-6 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 md:grid-cols-3 md:gap-4">
                   <StatCard
                     label="Monthly Recurring Revenue"
                     value={fmt(stats?.mrr ?? 0)}
@@ -96,7 +96,7 @@ export default function SuperAdminDashboard() {
                 {/* Tier breakdown */}
                 <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
                   <h2 className="text-sm font-semibold text-gray-700 mb-4">Subscription Breakdown</h2>
-                  <div className="grid grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                     {tierOrder.map((tier) => {
                       const count = stats?.tier_breakdown[tier] ?? 0;
                       const total = stats?.total_organizations || 1;
@@ -121,7 +121,7 @@ export default function SuperAdminDashboard() {
                 </div>
 
                 {/* Recent signups */}
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
                   <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                     <h2 className="text-sm font-semibold text-gray-700">Recent Signups</h2>
                     <Link
@@ -131,7 +131,8 @@ export default function SuperAdminDashboard() {
                       View all →
                     </Link>
                   </div>
-                  <table className="w-full text-sm">
+                  <div className="overflow-x-auto">
+                  <table className="min-w-[48rem] text-sm">
                     <thead className="bg-gray-50">
                       <tr>
                         {["Company", "Subdomain", "Plan", "Status", "Joined"].map((h) => (
@@ -172,6 +173,7 @@ export default function SuperAdminDashboard() {
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               </>
             )}

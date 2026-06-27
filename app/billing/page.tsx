@@ -34,6 +34,12 @@ const PLANS = [
 ];
 
 const TIER_ORDER = ["free", "starter", "pro", "enterprise"];
+const buttonPrimary =
+  "inline-flex items-center justify-center gap-2 rounded-xl bg-[#6d28d9] px-4 py-2.5 text-sm font-black text-white shadow-lg shadow-purple-900/15 transition hover:bg-[#581c87] disabled:cursor-not-allowed disabled:opacity-60";
+const sectionTitleClass = "text-lg font-black text-[#130824]";
+const alertSuccessClass = "rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700";
+const alertWarningClass = "rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-700";
+const alertErrorClass = "rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700";
 
 function UsageBar({ used, limit, label }: { used: number; limit: number; label: string }) {
   const unlimited = limit === -1;
@@ -107,9 +113,9 @@ function BillingContent() {
     <AppShell>
       <PageHeader title="Billing & Plan" subtitle="Review usage, manage subscriptions, and choose the right plan." />
 
-      {success && <div className="app-alert-success mb-5">Payment successful! Your plan has been upgraded.</div>}
-      {cancelled && <div className="app-alert-warning mb-5">Checkout cancelled. Your plan was not changed.</div>}
-      {error && <div className="app-alert-error mb-5">{error}</div>}
+      {success && <div className={`${alertSuccessClass} mb-5`}>Payment successful! Your plan has been upgraded.</div>}
+      {cancelled && <div className={`${alertWarningClass} mb-5`}>Checkout cancelled. Your plan was not changed.</div>}
+      {error && <div className={`${alertErrorClass} mb-5`}>{error}</div>}
 
       {loading ? (
         <div className="space-y-4">
@@ -119,16 +125,16 @@ function BillingContent() {
         </div>
       ) : (
         <>
-          <Card className="mb-6 p-5">
-            <div className="mb-4 flex items-center justify-between">
+          <Card className="mb-6 p-4 sm:p-5">
+            <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="app-section-title">Current Plan</h2>
+                <h2 className={sectionTitleClass}>Current Plan</h2>
                 <div className="mt-1 flex items-baseline gap-2">
                   <span className="text-3xl font-black capitalize text-[#130824]">{info?.tier}</span>
                   <span className="text-sm text-[#6d6478]">${info?.price_per_month}/mo</span>
                 </div>
               </div>
-              <div className="text-right">
+              <div className="sm:text-right">
                 <StatusBadge tone={info?.status === "active" ? "success" : "danger"}>{info?.status}</StatusBadge>
                 {info?.current_period_end && (
                   <p className="mt-1 text-xs text-[#6d6478]">
@@ -159,7 +165,7 @@ function BillingContent() {
             )}
           </Card>
 
-          <h2 className="app-section-title mb-3">Change Plan</h2>
+          <h2 className={`${sectionTitleClass} mb-3`}>Change Plan</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {PLANS.map((plan, idx) => {
               const isCurrent = plan.tier === info?.tier;
@@ -197,7 +203,7 @@ function BillingContent() {
                     <button
                       onClick={() => handleUpgrade(plan.tier)}
                       disabled={checkoutLoading === plan.tier}
-                      className="app-btn-primary h-10 w-full text-xs"
+                      className={`${buttonPrimary} h-10 w-full text-xs`}
                     >
                       {checkoutLoading === plan.tier
                         ? "Redirecting..."
