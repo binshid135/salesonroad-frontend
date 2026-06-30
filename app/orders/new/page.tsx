@@ -23,6 +23,7 @@ export default function NewOrderPage() {
   const [items, setItems] = useState<Item[]>([]);
   const [search, setSearch] = useState("");
   const [cart, setCart] = useState<CartEntry[]>([]);
+  const [priceOverrides, setPriceOverrides] = useState<Record<string, string>>({});
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cash");
@@ -46,28 +47,34 @@ export default function NewOrderPage() {
 
   const cartMap = Object.fromEntries(cart.map((entry) => [entry.item.id, entry.qty]));
 
+  const getPrice = (item: Item): number => {
+    const override = priceOverrides[item.id];
+    if (override !== undefined) {
+      const parsed = parseFloat(override);
+      return isNaN(parsed) ? parseFloat(item.price) : parsed;
+    }
+    return parseFloat(item.price);
+  };
+
   const setQty = (item: Item, qty: number) => {
     if (qty <= 0) {
-      setCart((prev) => prev.filter((entry) => entry.item.id !== item.id));
+      setCart((prev) => prev.filter((e) => e.item.id !== item.id));
       return;
     }
-
     setCart((prev) => {
-      const existing = prev.find((entry) => entry.item.id === item.id);
-      if (existing) {
-        return prev.map((entry) => (entry.item.id === item.id ? { ...entry, qty } : entry));
-      }
+      const existing = prev.find((e) => e.item.id === item.id);
+      if (existing) return prev.map((e) => (e.item.id === item.id ? { ...e, qty } : e));
       return [...prev, { item, qty }];
     });
   };
 
-  const subtotal = cart.reduce((sum, entry) => sum + parseFloat(entry.item.price) * entry.qty, 0);
-  const gst = cart.reduce(
+  const subtotal = cart.reduce((sum, entry) => sum + getPrice(entry.item) * entry.qty, 0);
+  const vat = cart.reduce(
     (sum, entry) =>
-      sum + parseFloat(entry.item.price) * entry.qty * (parseFloat(entry.item.gst_rate) / 100),
+      sum + getPrice(entry.item) * entry.qty * (parseFloat(entry.item.gst_rate) / 100),
     0
   );
-  const total = subtotal + gst;
+  const total = subtotal + vat;
 
   const handleSubmit = async () => {
     if (!customerName.trim()) {
@@ -86,7 +93,11 @@ export default function NewOrderPage() {
         customer_phone: customerPhone,
         payment_method: paymentMethod,
         payment_status: paymentStatus,
-        items: cart.map((entry) => ({ item_id: entry.item.id, quantity: entry.qty })),
+        items: cart.map((entry) => ({
+          item_id: entry.item.id,
+          quantity: entry.qty,
+          unit_price: (priceOverrides[entry.item.id] ?? entry.item.price).toString(),
+        })),
       });
       router.push("/orders");
     } catch (err: unknown) {
@@ -168,33 +179,104 @@ export default function NewOrderPage() {
                 ))}
               </div>
             ) : (
-              <div className="max-h-[28rem] space-y-2 overflow-y-auto pr-1">
+              <div className="max-h-[32rem] space-y-2 overflow-y-auto pr-1">
+                {filtered.length === 0 && (
+                  <p className="rounded-2xl bg-purple-50 p-4 text-center text-sm text-[#6d6478]">No items match your search.</p>
+                )}
                 {filtered.map((item) => {
                   const qty = cartMap[item.id] || 0;
+                  const priceVal = priceOverrides[item.id] ?? item.price;
+                  const belowCost = !!(item.cost_price && getPrice(item) <= parseFloat(item.cost_price));
+                  const inStock = (item.stock ?? 0) > 0;
                   return (
                     <div
                       key={item.id}
-                      className="flex items-center justify-between gap-3 rounded-2xl border border-[#eee7f8] bg-white px-3 py-3 transition hover:border-purple-200 hover:bg-purple-50/50"
+                      className={`relative overflow-hidden rounded-2xl border transition ${
+                        qty > 0
+                          ? "border-purple-300 bg-purple-50/60 shadow-sm shadow-purple-100"
+                          : "border-[#eee7f8] bg-white hover:border-purple-200 hover:bg-purple-50/30"
+                      }`}
                     >
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-bold text-[#130824]">{item.name}</p>
-                        <p className="text-xs text-[#6d6478]">
-                          AED {item.price}
-                          {parseFloat(item.gst_rate) > 0 && ` + ${item.gst_rate}% GST`}
-                        </p>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-                        <button
-                          onClick={() => setQty(item, qty - 1)}
-                          className="grid h-8 w-8 place-items-center rounded-full bg-purple-100 font-black text-purple-700 disabled:opacity-40"
-                          disabled={qty === 0}
-                        >
-                          -
-                        </button>
-                        <span className="w-7 text-center text-sm font-black">{qty || ""}</span>
-                        <button onClick={() => setQty(item, qty + 1)} className="grid h-8 w-8 place-items-center rounded-full bg-purple-700 text-white">
-                          <PlusIcon />
-                        </button>
+                      {qty > 0 && (
+                        <span className="absolute inset-y-0 left-0 w-1 rounded-l-2xl bg-purple-600" />
+                      )}
+
+                      <div className="px-4 py-3 pl-5">
+                        {/* Row 1 — name + qty controls */}
+                        <div className="flex items-center justify-between gap-3">
+                          <p className={`truncate text-sm font-bold ${qty > 0 ? "text-purple-900" : "text-[#130824]"}`}>
+                            {item.name}
+                            {item.sku && (
+                              <span className="ml-2 text-xs font-normal text-[#9c92aa]">{item.sku}</span>
+                            )}
+                          </p>
+                          <div className="flex shrink-0 items-center gap-1.5">
+                            <button
+                              onClick={() => setQty(item, qty - 1)}
+                              disabled={qty === 0}
+                              className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-purple-100 text-sm font-black text-purple-700 transition hover:bg-purple-200 disabled:opacity-30"
+                            >
+                              −
+                            </button>
+                            <input
+                              type="number"
+                              min="0"
+                              value={qty === 0 ? "" : qty}
+                              placeholder="0"
+                              onChange={(e) => {
+                                const val = parseInt(e.target.value, 10);
+                                setQty(item, isNaN(val) ? 0 : val);
+                              }}
+                              className="w-14 rounded-lg border border-purple-200 bg-white px-1 py-1 text-center text-sm font-black text-[#130824] outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
+                            />
+                            <button
+                              onClick={() => setQty(item, qty + 1)}
+                              className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-purple-700 text-white transition hover:bg-purple-800"
+                            >
+                              <PlusIcon />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Row 2 — badges + sale price */}
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                          <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                            inStock ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"
+                          }`}>
+                            Stock: {item.stock ?? 0}
+                          </span>
+                          {item.cost_price && (
+                            <span className="rounded-full bg-[#f3f0f8] px-2 py-0.5 text-xs font-bold text-[#6d6478]">
+                              Cost: AED {item.cost_price}
+                            </span>
+                          )}
+                          <div className="ml-auto flex items-center gap-1">
+                            <span className="text-xs font-semibold text-[#6d6478]">Sale AED</span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={priceVal}
+                              onChange={(e) =>
+                                setPriceOverrides((prev) => ({ ...prev, [item.id]: e.target.value }))
+                              }
+                              className={`w-20 rounded-lg border px-2 py-1 text-sm font-bold text-[#130824] outline-none focus:ring-2 ${
+                                belowCost
+                                  ? "border-amber-400 bg-amber-50 focus:border-amber-400 focus:ring-amber-100"
+                                  : "border-purple-200 bg-white focus:border-purple-400 focus:ring-purple-100"
+                              }`}
+                            />
+                            {parseFloat(item.gst_rate) > 0 && (
+                              <span className="text-xs text-[#9c92aa]">+{item.gst_rate}% VAT</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {belowCost && (
+                          <p className="mt-1.5 text-xs font-bold text-amber-600">
+                            ⚠ Sale price is below cost (AED {item.cost_price})
+                          </p>
+                        )}
                       </div>
                     </div>
                   );
@@ -216,7 +298,7 @@ export default function NewOrderPage() {
                     <span className="text-[#6d6478]">
                       {entry.item.name} x {entry.qty}
                     </span>
-                    <span className="font-bold">AED {(parseFloat(entry.item.price) * entry.qty).toFixed(2)}</span>
+                    <span className="font-bold">AED {(getPrice(entry.item) * entry.qty).toFixed(2)}</span>
                   </div>
                 ))}
                 <div className="space-y-2 border-t border-[#eee7f8] pt-3">
@@ -224,10 +306,10 @@ export default function NewOrderPage() {
                     <span>Subtotal</span>
                     <span>AED {subtotal.toFixed(2)}</span>
                   </div>
-                  {gst > 0 && (
+                  {vat > 0 && (
                     <div className="flex justify-between text-sm text-[#6d6478]">
-                      <span>GST</span>
-                      <span>AED {gst.toFixed(2)}</span>
+                      <span>VAT</span>
+                      <span>AED {vat.toFixed(2)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-xl font-black text-[#130824]">

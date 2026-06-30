@@ -51,6 +51,13 @@ export const itemsAPI = {
   create: (data: Partial<Item>) => api.post("/items/", data),
   update: (id: string, data: Partial<Item>) => api.patch(`/items/${id}/`, data),
   delete: (id: string) => api.delete(`/items/${id}/`),
+  importFile: (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return api.post("/items/import/", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
 };
 
 // Orders
@@ -149,10 +156,13 @@ export interface User {
 export interface Item {
   id: string;
   name: string;
-  sku: string;
+  sku: string | null;
   price: string;
+  cost_price: string | null;
+  stock: number;
+  mrp: string | null;
   gst_rate: string;
-  unit: string;
+  unit: string | null;
   image_url: string | null;
   is_active: boolean;
 }
@@ -194,5 +204,5 @@ export interface CreateOrderPayload {
   payment_method?: string;
   payment_status?: string;
   device_id?: string;
-  items: { item_id: string; quantity: number }[];
+  items: { item_id: string; quantity: number; unit_price?: string }[];
 }
