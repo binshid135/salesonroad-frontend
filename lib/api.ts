@@ -62,10 +62,21 @@ export const itemsAPI = {
 
 // Orders
 export const ordersAPI = {
-  list: (search?: string) =>
-    api.get("/orders/", { params: search ? { search } : {} }),
+  list: (search?: string, dateFrom?: string, dateTo?: string) =>
+    api.get("/orders/", {
+      params: {
+        ...(search ? { search } : {}),
+        ...(dateFrom ? { date_from: dateFrom } : {}),
+        ...(dateTo ? { date_to: dateTo } : {}),
+      },
+    }),
   get: (id: string) => api.get(`/orders/${id}/`),
   create: (data: CreateOrderPayload) => api.post("/orders/create/", data),
+  exportDaily: (date?: string) =>
+    api.get("/orders/export/", {
+      params: date ? { date } : {},
+      responseType: "blob",
+    }),
 };
 
 // Dashboard
