@@ -164,119 +164,155 @@ export default function NewOrderPage() {
                 {cart.length} selected
               </span>
             </div>
+
+            {cart.length > 0 && (
+              <div className="mb-5 space-y-2 rounded-2xl border border-purple-100 bg-purple-50/50 p-3">
+                <p className="px-1 text-xs font-black uppercase tracking-wide text-[#6d6478]">Selected Items</p>
+                {cart.map((entry) => {
+                  const priceVal = priceOverrides[entry.item.id] ?? entry.item.price;
+                  const belowCost = !!(
+                    entry.item.cost_price && getPrice(entry.item) <= parseFloat(entry.item.cost_price)
+                  );
+                  return (
+                    <div key={entry.item.id} className="rounded-xl border border-purple-200 bg-white px-3 py-2.5">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="truncate text-sm font-bold text-[#130824]">
+                          {entry.item.name}
+                          {entry.item.sku && (
+                            <span className="ml-2 text-xs font-normal text-[#9c92aa]">{entry.item.sku}</span>
+                          )}
+                        </p>
+                        <button
+                          onClick={() => setQty(entry.item, 0)}
+                          className="shrink-0 text-xs font-bold text-red-500 transition hover:text-red-700"
+                        >
+                          Remove
+                        </button>
+                      </div>
+
+                      <div className="mt-2 flex flex-wrap items-center gap-3">
+                        <div className="flex shrink-0 items-center gap-1.5">
+                          <button
+                            onClick={() => setQty(entry.item, entry.qty - 1)}
+                            className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-purple-100 text-sm font-black text-purple-700 transition hover:bg-purple-200"
+                          >
+                            −
+                          </button>
+                          <input
+                            type="number"
+                            min="0"
+                            value={entry.qty}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value, 10);
+                              setQty(entry.item, isNaN(val) ? 0 : val);
+                            }}
+                            className="w-14 rounded-lg border border-purple-200 bg-white px-1 py-1 text-center text-sm font-black text-[#130824] outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
+                          />
+                          <button
+                            onClick={() => setQty(entry.item, entry.qty + 1)}
+                            className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-purple-700 text-white transition hover:bg-purple-800"
+                          >
+                            <PlusIcon />
+                          </button>
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs font-semibold text-[#6d6478]">AED</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={priceVal}
+                            onChange={(e) =>
+                              setPriceOverrides((prev) => ({ ...prev, [entry.item.id]: e.target.value }))
+                            }
+                            className={`w-20 rounded-lg border px-2 py-1 text-sm font-bold text-[#130824] outline-none focus:ring-2 ${
+                              belowCost
+                                ? "border-amber-400 bg-amber-50 focus:border-amber-400 focus:ring-amber-100"
+                                : "border-purple-200 bg-white focus:border-purple-400 focus:ring-purple-100"
+                            }`}
+                          />
+                          {parseFloat(entry.item.gst_rate) > 0 && (
+                            <span className="text-xs text-[#9c92aa]">+{entry.item.gst_rate}% VAT</span>
+                          )}
+                        </div>
+
+                        <span className="ml-auto text-sm font-black text-[#130824]">
+                          AED {(getPrice(entry.item) * entry.qty).toFixed(2)}
+                        </span>
+                      </div>
+
+                      {belowCost && (
+                        <p className="mt-1.5 text-xs font-bold text-amber-600">
+                          ⚠ Sale price is below cost (AED {entry.item.cost_price})
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <p className="mb-2 px-1 text-xs font-black uppercase tracking-wide text-[#6d6478]">Catalog</p>
             <input
               type="search"
               placeholder="Search items..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className={`${inputClass} mb-4`}
+              className={`${inputClass} mb-3`}
             />
 
             {loading ? (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} className="h-14 animate-pulse rounded-2xl bg-purple-100/70" />
+                  <div key={i} className="h-12 animate-pulse rounded-xl bg-purple-100/70" />
                 ))}
               </div>
             ) : (
-              <div className="max-h-[32rem] space-y-2 overflow-y-auto pr-1">
+              <div className="max-h-[24rem] space-y-1.5 overflow-y-auto pr-1">
                 {filtered.length === 0 && (
                   <p className="rounded-2xl bg-purple-50 p-4 text-center text-sm text-[#6d6478]">No items match your search.</p>
                 )}
                 {filtered.map((item) => {
                   const qty = cartMap[item.id] || 0;
-                  const priceVal = priceOverrides[item.id] ?? item.price;
-                  const belowCost = !!(item.cost_price && getPrice(item) <= parseFloat(item.cost_price));
                   const inStock = (item.stock ?? 0) > 0;
                   return (
                     <div
                       key={item.id}
-                      className={`relative overflow-hidden rounded-2xl border transition ${
+                      className={`flex items-center justify-between gap-3 rounded-xl border px-3 py-2 transition ${
                         qty > 0
-                          ? "border-purple-300 bg-purple-50/60 shadow-sm shadow-purple-100"
+                          ? "border-purple-200 bg-purple-50/40"
                           : "border-[#eee7f8] bg-white hover:border-purple-200 hover:bg-purple-50/30"
                       }`}
                     >
-                      {qty > 0 && (
-                        <span className="absolute inset-y-0 left-0 w-1 rounded-l-2xl bg-purple-600" />
-                      )}
-
-                      <div className="px-4 py-3 pl-5">
-                        {/* Row 1 — name + qty controls */}
-                        <div className="flex items-center justify-between gap-3">
-                          <p className={`truncate text-sm font-bold ${qty > 0 ? "text-purple-900" : "text-[#130824]"}`}>
-                            {item.name}
-                            {item.sku && (
-                              <span className="ml-2 text-xs font-normal text-[#9c92aa]">{item.sku}</span>
-                            )}
-                          </p>
-                          <div className="flex shrink-0 items-center gap-1.5">
-                            <button
-                              onClick={() => setQty(item, qty - 1)}
-                              disabled={qty === 0}
-                              className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-purple-100 text-sm font-black text-purple-700 transition hover:bg-purple-200 disabled:opacity-30"
-                            >
-                              −
-                            </button>
-                            <input
-                              type="number"
-                              min="0"
-                              value={qty === 0 ? "" : qty}
-                              placeholder="0"
-                              onChange={(e) => {
-                                const val = parseInt(e.target.value, 10);
-                                setQty(item, isNaN(val) ? 0 : val);
-                              }}
-                              className="w-14 rounded-lg border border-purple-200 bg-white px-1 py-1 text-center text-sm font-black text-[#130824] outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
-                            />
-                            <button
-                              onClick={() => setQty(item, qty + 1)}
-                              className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-purple-700 text-white transition hover:bg-purple-800"
-                            >
-                              <PlusIcon />
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Row 2 — badges + sale price */}
-                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-[#130824]">
+                          {item.name}
+                          {item.sku && (
+                            <span className="ml-2 text-xs font-normal text-[#9c92aa]">{item.sku}</span>
+                          )}
+                        </p>
+                        <div className="mt-0.5 flex flex-wrap items-center gap-2">
                           <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${
                             inStock ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"
                           }`}>
                             Stock: {item.stock ?? 0}
                           </span>
-                          {item.cost_price && (
-                            <span className="rounded-full bg-[#f3f0f8] px-2 py-0.5 text-xs font-bold text-[#6d6478]">
-                              Cost: AED {item.cost_price}
-                            </span>
-                          )}
-                          <div className="ml-auto flex items-center gap-1">
-                            <span className="text-xs font-semibold text-[#6d6478]">Sale AED</span>
-                            <input
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              value={priceVal}
-                              onChange={(e) =>
-                                setPriceOverrides((prev) => ({ ...prev, [item.id]: e.target.value }))
-                              }
-                              className={`w-20 rounded-lg border px-2 py-1 text-sm font-bold text-[#130824] outline-none focus:ring-2 ${
-                                belowCost
-                                  ? "border-amber-400 bg-amber-50 focus:border-amber-400 focus:ring-amber-100"
-                                  : "border-purple-200 bg-white focus:border-purple-400 focus:ring-purple-100"
-                              }`}
-                            />
-                            {parseFloat(item.gst_rate) > 0 && (
-                              <span className="text-xs text-[#9c92aa]">+{item.gst_rate}% VAT</span>
-                            )}
-                          </div>
+                          <span className="text-xs font-semibold text-[#6d6478]">AED {item.price}</span>
                         </div>
-
-                        {belowCost && (
-                          <p className="mt-1.5 text-xs font-bold text-amber-600">
-                            ⚠ Sale price is below cost (AED {item.cost_price})
-                          </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        {qty > 0 && (
+                          <span className="rounded-full bg-purple-100 px-2.5 py-1 text-xs font-black text-purple-700">
+                            {qty} in cart
+                          </span>
                         )}
+                        <button
+                          onClick={() => setQty(item, qty + 1)}
+                          className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-purple-700 text-white transition hover:bg-purple-800"
+                        >
+                          <PlusIcon />
+                        </button>
                       </div>
                     </div>
                   );

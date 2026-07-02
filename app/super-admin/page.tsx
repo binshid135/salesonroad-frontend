@@ -132,7 +132,7 @@ export default function SuperAdminDashboard() {
                     </Link>
                   </div>
                   <div className="overflow-x-auto">
-                  <table className="min-w-[48rem] text-sm">
+                  <table className="w-full min-w-[48rem] text-sm">
                     <thead className="bg-gray-50">
                       <tr>
                         {["Company", "Subdomain", "Plan", "Status", "Joined"].map((h) => (

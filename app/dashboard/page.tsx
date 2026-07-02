@@ -102,7 +102,7 @@ export default function DashboardPage() {
           />
         ) : (
           <div className="overflow-x-auto rounded-2xl border border-white/80 bg-white shadow-[0_16px_40px_rgba(54,22,92,0.08)]">
-            <table className="min-w-[42rem] border-collapse text-left text-sm">
+            <table className="w-full min-w-[42rem] border-collapse text-left text-sm">
               <thead>
                 <tr>
                   {["Customer", "Total", "Payment", "Date"].map((heading) => (

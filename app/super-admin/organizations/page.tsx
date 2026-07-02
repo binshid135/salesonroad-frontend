@@ -87,7 +87,7 @@ export default function OrganizationsPage() {
             ) : (
               <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
                 <div className="overflow-x-auto">
-                <table className="min-w-[62rem] text-sm">
+                <table className="w-full min-w-[62rem] text-sm">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       {["Company", "Subdomain", "Plan", "Status", "Users", "Orders", "Joined", ""].map((h) => (

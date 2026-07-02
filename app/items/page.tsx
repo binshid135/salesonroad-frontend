@@ -273,7 +273,7 @@ export default function ItemsPage() {
         <EmptyState title="No items yet" body="Add your first product to start building orders." />
       ) : (
         <div className={tableWrapClass}>
-          <table className="min-w-[56rem] border-collapse text-left text-sm">
+          <table className="w-full min-w-[56rem] border-collapse text-left text-sm">
             <thead>
               <tr>
                 {[...TABLE_COLS.map((c) => c.heading), ""].map((h) => (

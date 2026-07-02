@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AppShell, EmptyState, PageHeader, PlusIcon, StatusBadge } from "@/components/AppShell";
 import { ordersAPI, Order } from "@/lib/api";
 
@@ -57,6 +58,7 @@ const PRESETS: { key: Preset; label: string }[] = [
 ];
 
 export default function OrdersPage() {
+  const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -234,7 +236,7 @@ export default function OrdersPage() {
         <EmptyState title="No orders found" body="Try adjusting the date filter or search term." />
       ) : (
         <div className={tableWrapClass}>
-          <table className="min-w-[52rem] border-collapse text-left text-sm">
+          <table className="w-full min-w-[52rem] border-collapse text-left text-sm">
             <thead>
               <tr>
                 {["Customer", "Salesman", "Total", "Payment", "Status", "Date"].map((h) => (
@@ -244,7 +246,11 @@ export default function OrdersPage() {
             </thead>
             <tbody className="divide-y divide-[#eee7f8]">
               {orders.map((order) => (
-                <tr key={order.id} className="hover:bg-purple-50/50">
+                <tr
+                  key={order.id}
+                  onClick={() => router.push(`/orders/${order.id}`)}
+                  className="cursor-pointer hover:bg-purple-50/50"
+                >
                   <td className={`${tdClass} font-bold`}>
                     {order.customer_name}
                     {order.customer_phone && (

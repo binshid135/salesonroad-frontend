@@ -162,7 +162,7 @@ export default function TeamPage() {
         <EmptyState title="No team members yet" body="Add a salesman to begin assigning field orders." />
       ) : (
         <div className={tableWrapClass}>
-          <table className="min-w-[52rem] border-collapse text-left text-sm">
+          <table className="w-full min-w-[52rem] border-collapse text-left text-sm">
             <thead>
               <tr>
                 {["Name", "Email", "Role", "Status", "Actions"].map((heading) => (
