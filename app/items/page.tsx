@@ -136,10 +136,11 @@ export default function ItemsPage() {
     setSaving(true);
     setError("");
     try {
+      const payload = { ...form, stock: Number(form.stock) || 0 };
       if (editItem) {
-        await itemsAPI.update(editItem.id, form);
+        await itemsAPI.update(editItem.id, payload);
       } else {
-        await itemsAPI.create(form);
+        await itemsAPI.create(payload);
       }
       setShowForm(false);
       fetchItems(search || undefined);
